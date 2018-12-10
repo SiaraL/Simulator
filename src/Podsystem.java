@@ -1,5 +1,4 @@
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
@@ -43,7 +42,7 @@ public class Podsystem {
 		GridPane.setConstraints(nazwaPodsystem, 2, 1);
 		
 		//Napiêcie Podsystemu
-		Label napieciePodsyst = new Label("Wartoœæ napiêcia [kV]:");
+		Label napieciePodsyst = new Label("Wartoœæ napiêcia [kV]:\n(wartoœcie miêdzyfazowe)");
 		GridPane.setConstraints(napieciePodsyst, 1, 2);
 		napieciePodsyst.setMinWidth(100);
 		napieciePodsystem = new TextField();
@@ -87,13 +86,13 @@ public class Podsystem {
 		
 		GridPane.setConstraints(anulujButton, 4, 4);
 		
-		gridPane.getChildren().setAll(nazwaPodsyst, nazwaPodsystem, napieciePodsyst, napieciePodsystem, przesuniecieNap, przesuniecieKatowe, mocPodsyst, mocPodsystem);
+		gridPane.getChildren().setAll(nazwaPodsyst, nazwaPodsystem, napieciePodsyst, napieciePodsystem, przesuniecieNap, przesuniecieKatowe);
 		
 		borderPodsystem.setTop(gridPane);
 		borderPodsystem.setCenter(hBox);
 		
 		
-		Scene scene = new Scene(borderPodsystem, 405, 240);
+		Scene scene = new Scene(borderPodsystem, 405, 200);
 		window.setScene(scene);
 		window.show();
 		
@@ -103,26 +102,15 @@ public class Podsystem {
 		window.close();
 	}
 		
-	public static Connection polaczenie(){
-		String url = "jdbc:sqlite:BazaDanych.db";
-		Connection conn = null;
-		try{
-			conn = DriverManager.getConnection(url);
-		} catch(SQLException e){
-			System.out.println(e.getMessage());
-		}
-		return conn;
-	}
 	
 	public static void Insert(String nazwa, String napiecie, String przesuniecieKatowe, String mocZwarciowa){
-		String sql = "INSERT INTO PODSYSTEM(nazwa, napiecie, przesuniecieKatowe, mocZwarciowa) VALUES(?, ?, ?, ?)";
+		String sql = "INSERT INTO PODSYSTEM(nazwa, napiecie, przesuniecieKatowe) VALUES(?, ?, ?)";
 		
-		try(Connection conn = polaczenie();
+		try(Connection conn = Stacja.polaczenie();
 			PreparedStatement pstmt = conn.prepareStatement(sql)){
 				pstmt.setString(1, nazwa);
 				pstmt.setString(2, napiecie);
 				pstmt.setString(3, przesuniecieKatowe);
-				pstmt.setString(4, mocZwarciowa);
 				pstmt.execute();	
 				OknoGlowne.borderPane.setBottom(PasekPomocy.pasek("Podsystem zosta³ pomyœlnie "
 						+ "dodany do bazy danych."));

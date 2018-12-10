@@ -9,6 +9,7 @@ import flanagan.complex.ComplexMatrix;
 
 public class Macierz {
 
+	static double fazowe=1, RMS=1;
 	static boolean sukces = false;
 	static ArrayList<String> licznik = new ArrayList<String>();
 
@@ -19,16 +20,15 @@ public class Macierz {
 		ComplexMatrix Z = macierzImpedancjiSkladowych();
 		ComplexMatrix U = wektorSkladowychNapiecia();
 		ComplexMatrix AZ = A.times(Z);
-		ComplexMatrix AU = A.times(U);
 		ComplexMatrix AZB = AZ.minus(B);
+		ComplexMatrix AZBA = AZB.inverse().times(A);
 		
-		macierzPradowSkladowych = AZB.inverse().times(AU);
-
+		macierzPradowSkladowych = AZBA.times(U);
 		return macierzPradowSkladowych;
 	}
 
 	public static ComplexMatrix napieciaPoZwarciu1() {
-		macierzLG();
+//		macierzLG();
 		ComplexMatrix napieciePrzedZwarciem = wektorNapiecPrzedZwarciem();
 		ComplexMatrix napieciePoZwarciu = new ComplexMatrix(napieciePrzedZwarciem.getNrow(), 1);
 		ComplexMatrix pradZwarcia = new ComplexMatrix(napieciePrzedZwarciem.getNrow(), 1);
@@ -38,7 +38,7 @@ public class Macierz {
 	}
 
 	public static ComplexMatrix napieciaPoZwarciu2() {
-		macierzLG();
+//		macierzLG();
 		ComplexMatrix napieciePrzedZwarciem = new ComplexMatrix(napieciaPoZwarciu1().getNrow(), 1);
 		ComplexMatrix napieciePoZwarciu = new ComplexMatrix(napieciePrzedZwarciem.getNrow(), 1);
 		ComplexMatrix pradZwarcia = new ComplexMatrix(napieciePrzedZwarciem.getNrow(), 1);
@@ -48,7 +48,7 @@ public class Macierz {
 	}
 
 	public static ComplexMatrix napieciaPoZwarciu0() {
-		macierzLG();
+//		macierzLG();
 		ComplexMatrix napieciePrzedZwarciem = new ComplexMatrix(napieciaPoZwarciu1().getNrow(), 1);
 		ComplexMatrix napieciePoZwarciu = new ComplexMatrix(napieciePrzedZwarciem.getNrow(), 1);
 		ComplexMatrix pradZwarcia = new ComplexMatrix(napieciePrzedZwarciem.getNrow(), 1);
@@ -60,7 +60,7 @@ public class Macierz {
 	public static ComplexMatrix wektorSkladowychNapiecia() {
 		macierzLG();
 		ComplexMatrix napiecie = new ComplexMatrix(3, 1);
-		Complex U1 = wektorNapiecPrzedZwarciem().getElementReference(SelectStacja("napiecie").size(), 0);
+		Complex U1 = wektorNapiecPrzedZwarciem().getElementReference(SelectStacja("nazwa").size(), 0);
 		napiecie.setElement(1, 0, U1);
 		return napiecie;
 	}
@@ -71,8 +71,8 @@ public class Macierz {
 		ArrayList<String> stacja = SelectStacja("nazwa");
 		ArrayList<String> podsystem = SelectPodsystem("nazwa");
 		for (int i = 0; i < stacja.size(); i++) {
-			for (int j = 0; j < podsystem.size() * 11; j += 11) {
-				ArrayList<String> poprzeczne = liniePoprzeczne(j/11);
+			for (int j = 0; j < podsystem.size(); j++) {
+				ArrayList<String> poprzeczne = liniePoprzeczne(j);
 				if (stacja.get(i).equals(poprzeczne.get(7)) || stacja.get(i).equals(poprzeczne.get(8))) {
 					if(poprzeczne.get(9).equals("jednotorowa")){
 						double dlugosc = Double.parseDouble(poprzeczne.get(0));
@@ -88,10 +88,12 @@ public class Macierz {
 						double dlugosc = Double.parseDouble(poprzeczne.get(0));
 						double R1 = Double.parseDouble(poprzeczne.get(1))*dlugosc;
 						double X1 = Double.parseDouble(poprzeczne.get(2))*dlugosc;
-						double real = R1 * 2 / (R1 * R1 + X1 * X1);
-						double imag = -X1 * 2 / (R1 * R1 + X1 * X1);
+						double real = -R1 * 2 / (R1 * R1 + X1 * X1);
+						double imag = 	X1 * 2 / (R1 * R1 + X1 * X1);
 						macierzLG.setElement(i, i, real, imag);
-						licznik.add(stacja.get(i));
+						licznik.add(poprzeczne.get(7));
+						licznik.add(poprzeczne.get(8));
+						licznik.add(String.valueOf(i));
 					}
 				}
 
@@ -109,7 +111,7 @@ public class Macierz {
 			for(int j = 0; j < podsystem.size(); j++){
 				if(licznik.get(i).equals(podsystem.get(j)) || licznik.get(i+1).equals(podsystem.get(j))){
 					double Kat = Double.parseDouble(kat.get(j))*Math.PI/180;
-					double nap = Double.parseDouble(napiecie.get(j));
+					double nap = Double.parseDouble(napiecie.get(j))*RMS/Math.sqrt(3);
 					double real = nap*Math.cos(Kat);
 					double imag = nap*Math.sin(Kat);
 					wektorGG.setElement(Integer.parseInt(licznik.get(i+2)), 0, real, imag);
@@ -142,7 +144,7 @@ public class Macierz {
 	public static ComplexMatrix macierzAdmitancyjna(String skladowa) {
 		ArrayList<String> s = SelectStacja("nazwa");
 		ArrayList<String> z = SelectZwarcie();
-		ComplexMatrix macierz = new ComplexMatrix(5, 5);
+		ComplexMatrix macierz = new ComplexMatrix(s.size()+1,s.size()+1);
 		if (skladowa == "1") {
 			for (int i = 0; i < s.size(); i++) {
 				for (int j = 0; j < s.size(); j++) {
@@ -190,8 +192,8 @@ public class Macierz {
 										X1 = X1 * odlegloscZwarcia;
 										real += R1 * 2 / (R1 * R1 + X1 * X1);
 										imag += -X1 * 2 / (R1 * R1 + X1 * X1);
-										Complex complex = new Complex(2 * R1 / (R1 * R1 + X1 * X1),
-												-X1 * 2 / (R1 * R1 + X1 * X1));
+										Complex complex = new Complex( R1 * 2/ (R1 * R1 + X1 * X1),
+												-X1 * 2/ (R1 * R1 + X1 * X1));
 										macierz.setElement(s.size(), s.size(),
 												macierz.getElementReference(s.size(), s.size()).plus(complex));
 									} else {
@@ -199,8 +201,8 @@ public class Macierz {
 										X1 = X1 * (dlugosc - odlegloscZwarcia);
 										real += R1 * 2 / (R1 * R1 + X1 * X1);
 										imag += -X1 * 2 / (R1 * R1 + X1 * X1);
-										Complex complex = new Complex(R1 * 2 / (R1 * R1 + X1 * X1),
-												-X1 * 2 / (R1 * R1 + X1 * X1));
+										Complex complex = new Complex(R1 * 2/ (R1 * R1 + X1 * X1),
+												-X1 * 2/ (R1 * R1 + X1 * X1));
 										macierz.setElement(s.size(), s.size(),
 												macierz.getElementReference(s.size(), s.size()).plus(complex));
 									}
@@ -262,26 +264,27 @@ public class Macierz {
 										imag = 0;
 										R1 = R1 * odlegloscZwarcia;
 										X1 = X1 * odlegloscZwarcia;
-										macierz.setElement(s.size(), i, -R1 * 2 / (R1 * R1 + X1 * X1),
-												X1 * 2 / (R1 * R1 + X1 * X1));
-										macierz.setElement(i, s.size(), -R1 * 2 / (R1 * R1 + X1 * X1),
-												X1 * 2 / (R1 * R1 + X1 * X1));
+						
+										macierz.setElement(s.size(), i, -R1 * 2/ (R1 * R1 + X1 * X1),
+												X1 * 2/ (R1 * R1 + X1 * X1));
+										macierz.setElement(i, s.size(), -R1 * 2/ (R1 * R1 + X1 * X1),
+												X1 * 2/ (R1 * R1 + X1 * X1));
 									} else {
 										real = 0;
 										imag = 0;
 										R1 = R1 * (dlugosc - odlegloscZwarcia);
 										X1 = X1 * (dlugosc - odlegloscZwarcia);
-										macierz.setElement(s.size(), i, -R1 * 2 / (R1 * R1 + X1 * X1),
-												X1 * 2 / (R1 * R1 + X1 * X1));
-										macierz.setElement(i, s.size(), -R1 * 2 / (R1 * R1 + X1 * X1),
-												X1 * 2 / (R1 * R1 + X1 * X1));
+										macierz.setElement(s.size(), i, -R1 * 2/ (R1 * R1 + X1 * X1),
+												X1 * 2/ (R1 * R1 + X1 * X1));
+										macierz.setElement(i, s.size(), -R1 * 2/ (R1 * R1 + X1 * X1),
+												X1 * 2/ (R1 * R1 + X1 * X1));
 									}
 
 								} else {
 									R1 = R1 * dlugosc;
 									X1 = X1 * dlugosc;
-									real = -R1 * 2 / (R1 * R1 + X1 * X1);
-									imag = X1 * 2 / (R1 * R1 + X1 * X1);
+									real = -R1 * 2/ (R1 * R1 + X1 * X1);
+									imag = X1 * 2/ (R1 * R1 + X1 * X1);
 								}
 
 								macierz.setElement(i, j, real, imag);
@@ -313,7 +316,6 @@ public class Macierz {
 												-X0 / (R0 * R0 + X0 * X0));
 										macierz.setElement(s.size(), s.size(),
 												macierz.getElementReference(s.size(), s.size()).plus(complex));
-										;
 									} else {
 										R0 = R0 * (dlugosc - odlegloscZwarcia);
 										X0 = X0 * (dlugosc - odlegloscZwarcia);
@@ -323,7 +325,6 @@ public class Macierz {
 												-X0 / (R0 * R0 + X0 * X0));
 										macierz.setElement(s.size(), s.size(),
 												macierz.getElementReference(s.size(), s.size()).plus(complex));
-										;
 									}
 								} else {
 									R0 = R0 * dlugosc;
@@ -332,51 +333,50 @@ public class Macierz {
 									imag += -X0 / (R0 * R0 + X0 * X0);
 								}
 								macierz.setElement(i, j, real, imag);
+																
 							}
-							if (wlasne.get(9).equals("dwutorowa")) {
-								double R0m = Double.parseDouble(wlasne.get(5));
-								double X0m = Double.parseDouble(wlasne.get(6));
+							if (wlasne.get(k + 9).equals("dwutorowa")) {
+								double R0m = Double.parseDouble(wlasne.get(k+5));
+								double X0m = Double.parseDouble(wlasne.get(k+6));
 								if (z.get(2).equals(wlasne.get(k + 10))) {
 									if (z.get(3).equals(s.get(i))) {
 										R0 = R0 * odlegloscZwarcia;
 										X0 = X0 * odlegloscZwarcia;
-										double mianownik, k0, Re, Im;
-										mianownik = Math.pow(R0 * R0 - X0 * X0 - R0m * R0m + X0m * X0m, 2)
-												+ Math.pow(2 * R0m * X0m - 2 * X0 * R0, 2);
-										k0 = 2 * (Math.pow(R0 - R0m, 2) + Math.pow(X0 - X0m, 2));
-										Re = R0 * R0 - X0 * X0 - R0m * R0m + X0m * X0m;
-										Im = 2 * R0m * X0m - 2 * X0 * R0;
-										real += k0 * Re / mianownik;
-										imag += k0 * Im / mianownik;
-										Complex complex = new Complex(k0 * Re / mianownik, k0 * Im / mianownik);
-										macierz.setElement(s.size(), s.size(),
-												macierz.getElementReference(s.size(), s.size()).plus(complex));
+										R0m = R0m * odlegloscZwarcia;
+										X0m = X0m * odlegloscZwarcia;
+										double mianownik, Re, Im;
+										mianownik = Math.pow(R0 + R0m, 2) + Math.pow(X0 + X0m, 2);
+										Re = 2 * (R0 + R0m);
+										Im = 2 * (X0 + X0m);
+										real += Re / mianownik;
+										imag += -Im / mianownik;
+										Complex complex = new Complex(Re / mianownik, -Im / mianownik);
+										macierz.setElement(s.size(), s.size(), macierz.getElementReference(s.size(), s.size()).plus(complex));
 									} else {
 										R0 = R0 * (dlugosc - odlegloscZwarcia);
 										X0 = X0 * (dlugosc - odlegloscZwarcia);
-										double mianownik, k0, Re, Im;
-										mianownik = Math.pow(R0 * R0 - X0 * X0 - R0m * R0m + X0m * X0m, 2)
-												+ Math.pow(2 * R0m * X0m - 2 * X0 * R0, 2);
-										k0 = 2 * (Math.pow(R0 - R0m, 2) + Math.pow(X0 - X0m, 2));
-										Re = R0 * R0 - X0 * X0 - R0m * R0m + X0m * X0m;
-										Im = 2 * R0m * X0m - 2 * X0 * R0;
-										real += k0 * Re / mianownik;
-										imag += k0 * Im / mianownik;
-										Complex complex = new Complex(k0 * Re / mianownik, k0 * Im / mianownik);
-										macierz.setElement(s.size(), s.size(),
-												macierz.getElementReference(s.size(), s.size()).plus(complex));
+										R0m = R0m * (dlugosc - odlegloscZwarcia);
+										X0m = X0m * (dlugosc - odlegloscZwarcia);
+										double mianownik, Re, Im;
+										mianownik = Math.pow(R0 + R0m, 2) + Math.pow(X0 + X0m, 2);
+										Re = 2 * (R0 + R0m);
+										Im = 2 * (X0 + X0m);
+										real += Re / mianownik;
+										imag += -Im / mianownik;
+										Complex complex = new Complex(Re / mianownik, -Im / mianownik);
+										macierz.setElement(s.size(), s.size(), macierz.getElementReference(s.size(), s.size()).plus(complex));
 									}
 								} else {
 									R0 = R0 * dlugosc;
 									X0 = X0 * dlugosc;
-									double mianownik, k0, Re, Im;
-									mianownik = Math.pow(R0 * R0 - X0 * X0 - R0m * R0m + X0m * X0m, 2)
-											+ Math.pow(2 * R0m * X0m - 2 * X0 * R0, 2);
-									k0 = 2 * (Math.pow(R0 - R0m, 2) + Math.pow(X0 - X0m, 2));
-									Re = R0 * R0 - X0 * X0 - R0m * R0m + X0m * X0m;
-									Im = 2 * R0m * X0m - 2 * X0 * R0;
-									real += k0 * Re / mianownik;
-									imag += k0 * Im / mianownik;
+									R0m = R0m * dlugosc;
+									X0m = X0m * dlugosc;
+									double mianownik, Re, Im;
+									mianownik = Math.pow(R0 + R0m, 2) + Math.pow(X0 + X0m, 2);
+									Re = 2 * (R0 + R0m);
+									Im = 2 * (X0 + X0m);
+									real += Re / mianownik;
+									imag += -Im / mianownik;
 								}
 								macierz.setElement(i, j, real, imag);
 							}
@@ -431,40 +431,36 @@ public class Macierz {
 										imag = 0;
 										R0 = R0 * odlegloscZwarcia;
 										X0 = X0 * odlegloscZwarcia;
-										double mianownik, k0, Re, Im;
-										mianownik = Math.pow(R0 * R0 - X0 * X0 - R0m * R0m + X0m * X0m, 2)
-												+ Math.pow(2 * R0m * X0m - 2 * X0 * R0, 2);
-										k0 = 2 * (Math.pow(R0 - R0m, 2) + Math.pow(X0 - X0m, 2));
-										Re = R0 * R0 - X0 * X0 - R0m * R0m + X0m * X0m;
-										Im = 2 * R0m * X0m - 2 * X0 * R0;
-										macierz.setElement(s.size(), i, -k0 * Re / mianownik, k0 * Im / mianownik);
-										macierz.setElement(i, s.size(), -k0 * Re / mianownik, k0 * Im / mianownik);
+										R0m = R0m * odlegloscZwarcia;
+										X0m = X0m * odlegloscZwarcia;
+										double mianownik, Re, Im;
+										mianownik = Math.pow(R0 + R0m, 2) + Math.pow(X0 + X0m, 2);
+										Re = 2 * (R0 + R0m);
+										Im = 2 * (X0 + X0m);
+										macierz.setElement(s.size(), i, -Re / mianownik, Im / mianownik);
+										macierz.setElement(i, s.size(), -Re / mianownik, Im / mianownik);
 									} else {
 										real = 0;
 										imag = 0;
 										R0 = R0 * (dlugosc - odlegloscZwarcia);
 										X0 = X0 * (dlugosc - odlegloscZwarcia);
-										double mianownik, k0, Re, Im;
-										mianownik = Math.pow(R0 * R0 - X0 * X0 - R0m * R0m + X0m * X0m, 2)
-												+ Math.pow(2 * R0m * X0m - 2 * X0 * R0, 2);
-										k0 = 2 * (Math.pow(R0 - R0m, 2) + Math.pow(X0 - X0m, 2));
-										Re = R0 * R0 - X0 * X0 - R0m * R0m + X0m * X0m;
-										Im = 2 * R0m * X0m - 2 * X0 * R0;
-										macierz.setElement(s.size(), i, -k0 * Re / mianownik, k0 * Im / mianownik);
-										macierz.setElement(i, s.size(), -k0 * Re / mianownik, k0 * Im / mianownik);
+										R0m = R0m * (dlugosc - odlegloscZwarcia);
+										X0m = X0m * (dlugosc - odlegloscZwarcia);
+										double mianownik, Re, Im;
+										mianownik = Math.pow(R0 + R0m, 2) + Math.pow(X0 + X0m, 2);
+										Re = 2 * (R0 + R0m);
+										Im = 2 * (X0 + X0m);
+										macierz.setElement(s.size(), i, -Re / mianownik, Im / mianownik);
+										macierz.setElement(i, s.size(), -Re / mianownik, Im / mianownik);
 									}
 
 								} else {
 									R0 = R0 * dlugosc;
 									X0 = X0 * dlugosc;
-									double mianownik, k0, Re, Im;
-									mianownik = Math.pow(R0 * R0 - X0 * X0 - R0m * R0m + X0m * X0m, 2)
-											+ Math.pow(2 * R0m * X0m - 2 * X0 * R0, 2);
-									k0 = 2 * (Math.pow(R0 - R0m, 2) + Math.pow(X0 - X0m, 2));
-									Re = R0 * R0 - X0 * X0 - R0m * R0m + X0m * X0m;
-									Im = 2 * R0m * X0m - 2 * X0 * R0;
-									real = -k0 * Re / mianownik;
-									imag = k0 * Im / mianownik;
+									R0m = R0m * dlugosc;
+									X0m = X0m *dlugosc;
+									real = -2 * (R0 + R0m) / (Math.pow(R0 + R0m, 2) + Math.pow(X0 + X0m, 2));
+									imag = 2 * (X0 + X0m) / (Math.pow(R0 + R0m, 2) + Math.pow(X0 + X0m, 2));
 								}
 								macierz.setElement(i, j, real, imag);
 							}

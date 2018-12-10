@@ -7,7 +7,7 @@ import javafx.stage.Stage;
 
 public class OknoGlowne extends Application{
 
-	public Stage window;
+	static public Stage window;
 	static BorderPane borderPane;
 	Scene scene;	
 	Canvas canvas;

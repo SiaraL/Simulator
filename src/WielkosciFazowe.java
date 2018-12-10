@@ -85,7 +85,7 @@ public class WielkosciFazowe {
 	
 	public static ComplexMatrix PradyFazoweRozplyw(){
 		ComplexMatrix PradyFazoweRozplyw = new ComplexMatrix(RozplywPradow.rozplywPradow1().getNrow(), 3);
-		ComplexMatrix I1 = RozplywPradow.rozplywPradow1();
+		ComplexMatrix I1 = RozplywPradow.rozplywPradow1();	
 		ComplexMatrix I0 = RozplywPradow.rozplywPradow0();
 		ComplexMatrix I2 = RozplywPradow.rozplywPradow2();
 		ComplexMatrix WektorPomocniczyPradow = new ComplexMatrix(3, 1);

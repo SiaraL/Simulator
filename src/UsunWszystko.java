@@ -21,15 +21,13 @@ public class UsunWszystko {
 		ArrayList<String> tablica = new ArrayList<String>();
 		tablica.add("STACJA");
 		tablica.add("PODSYSTEM");
-		tablica.add("TRANSFORMATOR");
 		tablica.add("LINIA");
-		tablica.add("ODBIOR");
 		tablica.add("ZWARCIE");
 		for(int i = 0; i < tablica.size(); i++){
 			String sql = "DELETE FROM " + tablica.get(i);
 			try(Connection conn = Stacja.polaczenie();
 					Statement stmt = conn.createStatement();
-					ResultSet rs = stmt.executeQuery(sql)){				
+					ResultSet rs = stmt.executeQuery(sql)){
 			} catch(SQLException e){
 					System.out.println(e.getMessage());
 			}

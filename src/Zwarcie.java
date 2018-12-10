@@ -1,7 +1,6 @@
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -140,22 +139,12 @@ public class Zwarcie {
 	public static void zamknijZwarcie(){
 		window.close();
 	}
-	
-	public static Connection polaczenie(){
-		String url = "jdbc:sqlite:BazaDanych.db";
-		Connection conn = null;
-		try{
-			conn = DriverManager.getConnection(url);
-		} catch(SQLException e){
-			System.out.println(e.getMessage());
-		}
-		return conn;
-	}
+
 	
 	public static void Insert(String nazwa, String rodzaj, String linia, String stacjaOdniesienia, String odlegloscOdStacjiOdniesienia, String rezystancjaPrzejscia){
 		String sql = "INSERT INTO ZWARCIE(nazwa, rodzaj, linia, stacjaOdniesienia, odlegloscOdStacjiOdniesienia, rezystancjaPrzejscia) VALUES(?, ?, ?, ?, ?, ?)";
 		
-		try(Connection conn = polaczenie();
+		try(Connection conn = Stacja.polaczenie();
 			PreparedStatement pstmt = conn.prepareStatement(sql)){
 				pstmt.setString(1, nazwa);
 				pstmt.setString(2, rodzaj);
@@ -176,7 +165,7 @@ public class Zwarcie {
 	public static ArrayList<String> SelectLinia(){
 		String sql = "SELECT nazwa FROM LINIA";
 		ArrayList<String> s = new ArrayList<String>();
-		try(Connection conn = polaczenie();
+		try(Connection conn = Stacja.polaczenie();
 			Statement stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery(sql)){
 				while (rs.next()){
@@ -192,7 +181,7 @@ public class Zwarcie {
 	public static ArrayList<String> SelectPunkty(){
 		String sql = "SELECT koniec1, koniec2 FROM LINIA WHERE nazwa = '" + wybranaLinia +"'";
 		ArrayList<String> s = new ArrayList<String>();
-		try(Connection conn = polaczenie();
+		try(Connection conn = Stacja.polaczenie();
 			Statement stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery(sql)){
 				while (rs.next()){

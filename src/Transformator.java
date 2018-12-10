@@ -1,5 +1,4 @@
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
@@ -104,22 +103,12 @@ public class Transformator {
 	public static void zamknijTransformator(){
 		window.close();
 	}
-	
-	public static Connection polaczenie(){
-		String url = "jdbc:sqlite:BazaDanych.db";
-		Connection conn = null;
-		try{
-			conn = DriverManager.getConnection(url);
-		} catch(SQLException e){
-			System.out.println(e.getMessage());
-		}
-		return conn;
-	}
+
 	
 	public static void Insert(String nazwa, String napiecieStronaGorna, String napiecieStronaDolna, String przekladnia){
 		String sql = "INSERT INTO TRANSFORMATOR(nazwa, napiecieStronaGorna, napiecieStronaDolna, przekladnia) VALUES(?, ?, ?, ?)";
 		
-		try(Connection conn = polaczenie();
+		try(Connection conn = Stacja.polaczenie();
 			PreparedStatement pstmt = conn.prepareStatement(sql)){
 				pstmt.setString(1, nazwa);
 				pstmt.setString(2, napiecieStronaGorna);

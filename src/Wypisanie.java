@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 import flanagan.complex.ComplexMatrix;
 
 public class Wypisanie {
@@ -11,6 +13,15 @@ public class Wypisanie {
 				System.out.print(x.getElementReference(i, j) + "   ");
 			}
 			System.out.println("");
+		}
+		return macierz;
+	}
+	
+	public static ArrayList<String> wypiszNazwe(ArrayList<String> x, String tekst){
+		ArrayList<String> macierz = new ArrayList<String>();
+		System.out.println("\n" + tekst);
+		for(int i = 0; i < x.size(); i++){
+				System.out.print(x.get(i) + "\n");
 		}
 		return macierz;
 	}

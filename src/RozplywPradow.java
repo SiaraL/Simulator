@@ -20,10 +20,12 @@ public class RozplywPradow{
 		ArrayList<String> dlugosc_ = SelectLinia("dlugosc");
 		ArrayList<String> koniec1 = SelectLinia("koniec1");
 		ArrayList<String> koniec2 = SelectLinia("koniec2");
+		ArrayList<String> nazwa = SelectLinia("nazwa");
 		dlugosc_.add("0");
 		R1_.add("0");
 		X1_.add("0");
 		rodzaj.add("");
+		nazwa.add("");
 		ArrayList<String> zwarcie = Macierz.SelectZwarcie();
 		int a = roznicanapiec.getNrow()-1;
 		double Rkoniec = 0, Xkoniec = 0; 
@@ -44,10 +46,10 @@ public class RozplywPradow{
 				rodzajZwarcia = rodzaj.get(i);
 			}
 			if(i == numerLiniiZwarcia && koniec2.get(i).equals(stacjaOdniesienia)){
-				Rkoniec = R1/dlugosc*(dlugosc-odleglosc);
-				Xkoniec = X1/dlugosc*(dlugosc-odleglosc);
-				R1 = R1/dlugosc*odleglosc;
-				X1 = X1/dlugosc*odleglosc;
+				Rkoniec = R1/dlugosc*odleglosc;
+				Xkoniec = X1/dlugosc*odleglosc;
+				R1 = R1/dlugosc*(dlugosc-odleglosc);
+				X1 = X1/dlugosc*(dlugosc-odleglosc);
 				rodzajZwarcia = rodzaj.get(i);
 			}
 			if(i == a){
@@ -61,8 +63,10 @@ public class RozplywPradow{
 			if(rodzaj.get(i).equals("dwutorowa")){
 				Z = new Complex(R1/2, X1/2);
 			}
+//			System.out.println("stacja odniesienia: " + stacjaOdniesienia +"; numer: " + numerLiniiZwarcia  + "; koniec1: " + koniec1.get(i)+ "; koniec2: " + koniec2.get(i) + "; Rkoniec: " + Rkoniec + "; Xkoniec:" + Xkoniec);
 			U = roznicanapiec.getElementReference(i, 0);
 			Complex I = Complex.over(U, Z);
+			
 			rozplywpradow.setElement(i, 0, I.getReal(), I.getImag());
 		}
 		return rozplywpradow;
@@ -83,10 +87,17 @@ public class RozplywPradow{
 				numerLiniiZwarcia = i;
 			}
 		}
+		Wypisanie.wypiszNazwe(kat, "kat");
+		Wypisanie.wypiszNazwe(napiecie, "napiecie");
+		Wypisanie.wypiszNazwe(nazwa, "nazwa");
 		ComplexMatrix napieciePoZwarciu = Macierz.napieciaPoZwarciu1();
 		ComplexMatrix wektorRoznicyNapiec = new ComplexMatrix(linia.size()+1, 1);
 		ComplexMatrix wektorNapiec1 = new ComplexMatrix(linia.size()+1, 1);
 		ComplexMatrix wektorNapiec2 = new ComplexMatrix(linia.size()+1, 1);
+		Wypisanie.wypiszNazwe(nazwa, "nazwa");
+		Wypisanie.wypiszNazwe(koniec1, "koniec 1");
+		Wypisanie.wypiszNazwe(koniec2, "koniec 2");
+		Wypisanie.wypiszModul(napieciePoZwarciu, "napiecie po zwarciu");
 		for(int i = 0; i < linia.size(); i++){
 			int licznikKoniec1 = -1, licznikKoniec2 = -1;
 			for(int j = 0; j< stacja.size(); j++){
@@ -97,9 +108,11 @@ public class RozplywPradow{
 					for(int k = 0; k < stacja.size(); k++){
 						if(koniec1.get(i).equals(stacja.get(k))){
 							numerKoniec1 = k;
+							
 						}
 						if(koniec2.get(i).equals(stacja.get(k))){
 							numerKoniec2 = k;
+							
 						}
 					}
 					wektorNapiec1.setElement(i, 0, napieciePoZwarciu.getElementReference(numerKoniec1, 0));
@@ -115,12 +128,14 @@ public class RozplywPradow{
 				if(licznikKoniec1 == -1 || licznikKoniec2 == -1){
 					for(int k = 0; k < nazwa.size(); k++){
 						if(koniec1.get(i).equals(nazwa.get(k))){
-							double nap = Double.parseDouble(napiecie.get(k));
+							System.out.println(koniec1.get(i) + "     " + nazwa.get(k));
+							double nap = Double.parseDouble(napiecie.get(k))*Macierz.RMS/Math.sqrt(3);
 							double Kat = Double.parseDouble(kat.get(k))*Math.PI/180;
 							wektorNapiec1.setElement(i, 0, nap*Math.cos(Kat), nap*Math.sin(Kat));
+							System.out.println(koniec1.get(i) + "     " + nazwa.get(k) + "    " + napiecie.get(k) +  "   " + kat.get(k));
 						}
 						if(koniec2.get(i).equals(nazwa.get(k))){
-							double nap = Double.parseDouble(napiecie.get(k));
+							double nap = Double.parseDouble(napiecie.get(k))*Macierz.RMS/Math.sqrt(3);
 							double Kat = Double.parseDouble(kat.get(k))*Math.PI/180;
 							wektorNapiec2.setElement(i, 0, nap*Math.cos(Kat), nap*Math.sin(Kat));
 						}
@@ -135,6 +150,8 @@ public class RozplywPradow{
 			}
 			
 		}
+		Wypisanie.wypiszModul(wektorNapiec1, "napiecie 1 '1'");
+		Wypisanie.wypiszModul(wektorNapiec2, "napiecie 2 '1'");
 		wektorRoznicyNapiec = wektorNapiec1.minus(wektorNapiec2);
 		
 		return wektorRoznicyNapiec;
@@ -173,10 +190,10 @@ public class RozplywPradow{
 				rodzajZwarcia = rodzaj.get(i);
 			}
 			if(i == numerLiniiZwarcia && koniec2.get(i).equals(stacjaOdniesienia)){
-				Rkoniec = R1/dlugosc*(dlugosc-odleglosc);
-				Xkoniec = X1/dlugosc*(dlugosc-odleglosc);
-				R1 = R1/dlugosc*odleglosc;
-				X1 = X1/dlugosc*odleglosc;
+				Rkoniec = R1/dlugosc*odleglosc;
+				Xkoniec = X1/dlugosc*odleglosc;
+				R1 = R1/dlugosc*(dlugosc-odleglosc);
+				X1 = X1/dlugosc*(dlugosc-odleglosc);
 				rodzajZwarcia = rodzaj.get(i);
 			}
 			if(i == a){
@@ -258,8 +275,10 @@ public class RozplywPradow{
 			}
 			
 		}
+		Wypisanie.wypisz(wektorNapiec1, "napiecie 1 '2'");
+		Wypisanie.wypisz(wektorNapiec2, "napiecie 2 '2'");
 		wektorRoznicyNapiec = wektorNapiec1.minus(wektorNapiec2);
-		
+		Wypisanie.wypiszKat(wektorRoznicyNapiec, "wektor roznicy napiec");
 		return wektorRoznicyNapiec;
 	}
 
@@ -305,10 +324,10 @@ public class RozplywPradow{
 				rodzajZwarcia = rodzaj.get(i);
 			}
 			if(i == numerLiniiZwarcia && koniec2.get(i).equals(stacjaOdniesienia)){
-				Rkoniec = R0/dlugosc*(dlugosc-odleglosc);
-				Xkoniec = X0/dlugosc*(dlugosc-odleglosc);
-				R0 = R0/dlugosc*odleglosc;
-				X0 = X0/dlugosc*odleglosc;
+				Rkoniec = R0/dlugosc*odleglosc;
+				Xkoniec = X0/dlugosc*odleglosc;
+				R0 = R0/dlugosc*(dlugosc-odleglosc);
+				X0 = X0/dlugosc*(dlugosc-odleglosc);
 				rodzajZwarcia = rodzaj.get(i);
 			}
 			if(i == a){
@@ -320,7 +339,7 @@ public class RozplywPradow{
 				Z = new Complex(R0, X0);
 			}
 			if(rodzaj.get(i).equals("dwutorowa")){
-				Z = new Complex((R0*R0-X0*X0-R0m*R0m+X0m*X0m)/(2*Math.pow(R0-R0m, 2) + 2*Math.pow(R0-R0m, 2)), (2*R0*X0*-R0m*X0m)/(2*Math.pow(R0-R0m, 2) + 2*Math.pow(R0-R0m, 2)));
+				Z = new Complex((R0*R0-X0*X0-R0m*R0m+X0m*X0m), 2*R0*X0-2*R0m*X0m);
 			}
 			U = roznicanapiec.getElementReference(i, 0);
 			Complex I = Complex.over(U, Z);

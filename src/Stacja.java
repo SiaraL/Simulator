@@ -39,7 +39,6 @@ public class Stacja {
 		nazwaStacji.setPromptText("WprowadŸ nazwê stacji");
 		nazwaStacji.setMinWidth(200);
 		GridPane.setConstraints(nazwaStacji, 2, 1);
-		GridPane.setConstraints(przesuniecieKatowe, 2, 3);
 		
 		//Przycisk OK
 		Button okButton = new Button("OK");
@@ -74,7 +73,7 @@ public class Stacja {
 	}
 		
 	public static Connection polaczenie(){
-		String url = "jdbc:sqlite:BazaDanych.db";
+		String url = "jdbc:sqlite:../BazaDanych.db";
 		Connection conn = null;
 		try{
 			conn = DriverManager.getConnection(url);
@@ -85,7 +84,7 @@ public class Stacja {
 	}
 	
 	public static void Insert(String nazwa){
-		String sql = "INSERT INTO STACJA (nazwa, napiecie, przesuniecieKatowe) VALUES (?, ?, ?)";
+		String sql = "INSERT INTO STACJA (nazwa) VALUES (?)";
 		
 		try(Connection conn = polaczenie();
 			PreparedStatement pstmt = conn.prepareStatement(sql)){
